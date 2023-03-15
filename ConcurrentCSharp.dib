@@ -1,0 +1,69 @@
+#!meta
+
+{"kernelInfo":{"defaultKernelName":"csharp","items":[{"name":"csharp","aliases":[]}]}}
+
+#!csharp
+
+// setup, data generation
+#r "nuget: System.Linq.Async"
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using System.IO;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Diagnostics;
+using System.Reactive;
+using System.Reactive.Linq;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using static System.Console;
+
+public record Person(int Age, string Name);
+public static List<Person> people = new List<Person>
+{
+    new Person(25, "Alice"),
+    new Person(30, "Bob"),
+    new Person(42, "Charlie"),
+    new Person(19, "Diana"),
+    new Person(50, "Eve"),
+    new Person(28, "Frank"),
+    new Person(36, "Grace"),
+    new Person(21, "Harry"),
+    new Person(44, "Ivy"),
+    new Person(33, "Jack")
+};
+
+public static async Task HeavyLifting()
+{
+    await Task.Delay(1000);
+}
+
+public static async Task<Person> HeavyLiftingRecord()
+{
+    await Task.Delay(1000);
+    return people.First();
+}
+
+#!csharp
+
+//parallelize an IEnumerable of Tasks with WhenAll
+var tasks = Enumerable.Range(0, 10000).Select(async f => await HeavyLifting());
+await Task.WhenAll(tasks);
+
+#!csharp
+
+// parallelize an IAsyncEnumerable
+var tasks = await Enumerable.Range(0, 1000).ToAsyncEnumerable().Select(async f => await HeavyLifting()).ToListAsync();
+await Task.WhenAll(tasks);
+
+#!csharp
+
+// parallelize with Parallel.ForeachAsync and populate a collection
+var newList = new ConcurrentBag<Person>();
+await Parallel.ForEachAsync(people, async (f, g) =>{
+    var x = await HeavyLiftingRecord();
+    newList.Add(x);
+});
+
+newList.ToList()
