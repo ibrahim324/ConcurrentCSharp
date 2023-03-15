@@ -1,6 +1,6 @@
 #!meta
 
-{"kernelInfo":{"defaultKernelName":"csharp","items":[{"name":"csharp","aliases":[]}]}}
+{"kernelInfo":{"defaultKernelName":"csharp","items":[{"name":"csharp","aliases":[]},{"name":".NET","languageName":null,"aliases":[]},{"name":"vscode","languageName":null,"aliases":["frontend"]}]}}
 
 #!csharp
 
@@ -61,9 +61,14 @@ await Task.WhenAll(tasks);
 
 // parallelize with Parallel.ForeachAsync and populate a collection
 var newList = new ConcurrentBag<Person>();
-await Parallel.ForEachAsync(people, async (f, g) =>{
+var parallelOptions = new ParallelOptions() { MaxDegreeOfParallelism = 2 };
+await Parallel.ForEachAsync(people, parallelOptions, async (f, g) =>{
     var x = await HeavyLiftingRecord();
     newList.Add(x);
 });
 
 newList.ToList()
+
+#!csharp
+
+WriteLine(Directory.GetCurrentDirectory())
