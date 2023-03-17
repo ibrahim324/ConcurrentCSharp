@@ -17,6 +17,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using static System.Console;
 public record Person(int Age, string Name);
 
@@ -55,15 +56,19 @@ await foreach(var t in GetIntsAsync())
 #!csharp
 
 // parallelize with Parallel.ForeachAsync(IAsyncEnumerable source) and populate a collection
+
 var newList = new ConcurrentBag<int>();
 var parallelOptions = new ParallelOptions() { MaxDegreeOfParallelism = 2 };
-var source = Enumerable.Range(0, 10).ToAsyncEnumerable();
+var source = Enumerable.Range(0, 20).ToAsyncEnumerable();
 await Parallel.ForEachAsync(source, parallelOptions, async (f, g) =>{
     await Task.Delay(1000);
     newList.Add(f);
 });
 
-newList.ToList()
+public static void PopulateObservableCollection(this ObservableCollection<int> target, IAsyncEnumerable<int> source)
+{
+    
+}
 
 #!csharp
 
@@ -80,4 +85,7 @@ await Task.WhenAll(tasks);
 
 #!csharp
 
-WriteLine(Directory.GetCurrentDirectory())
+public static void AsyncStream(this ObservableCollection<int> target, IAsyncEnumerable<int> source)
+{
+    
+}
