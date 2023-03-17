@@ -1,6 +1,6 @@
 #!meta
 
-{"kernelInfo":{"defaultKernelName":"csharp","items":[{"name":"csharp","aliases":["c#","C#"],"languageName":"C#"},{"name":".NET","aliases":[],"languageName":null},{"name":"vscode","aliases":["frontend"],"languageName":null},{"name":"javascript","aliases":["js"],"languageName":"JavaScript"},{"name":"webview","aliases":[]}]}}
+{"kernelInfo":{"defaultKernelName":"csharp","items":[{"aliases":[],"name":".NET"},{"aliases":["C#","c#"],"languageName":"C#","name":"csharp"},{"aliases":["js"],"languageName":"JavaScript","name":"javascript"},{"aliases":["frontend"],"name":"vscode"},{"aliases":[],"name":"webview"}]}}
 
 #!csharp
 
@@ -18,8 +18,8 @@ using System.Reactive.Linq;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using static System.Console;
-
 public record Person(int Age, string Name);
+
 public static List<Person> people = new List<Person>
 {
     new Person(25, "Alice"),
@@ -54,27 +54,29 @@ await foreach(var t in GetIntsAsync())
 
 #!csharp
 
-//parallelize an IEnumerable of Tasks with WhenAll
-var tasks = Enumerable.Range(0, 10000).Select(async f => await HeavyLifting());
-await Task.WhenAll(tasks);
-
-#!csharp
-
-// parallelize an IAsyncEnumerable
-var tasks = await Enumerable.Range(0, 1000).ToAsyncEnumerable().Select(async f => await HeavyLifting()).ToListAsync();
-await Task.WhenAll(tasks);
-
-#!csharp
-
-// parallelize with Parallel.ForeachAsync and populate a collection
-var newList = new ConcurrentBag<Person>();
+// parallelize with Parallel.ForeachAsync(IAsyncEnumerable source) and populate a collection
+var newList = new ConcurrentBag<int>();
 var parallelOptions = new ParallelOptions() { MaxDegreeOfParallelism = 2 };
-await Parallel.ForEachAsync(people, parallelOptions, async (f, g) =>{
-    var x = await HeavyLiftingRecord();
-    newList.Add(x);
+var source = Enumerable.Range(0, 10).ToAsyncEnumerable();
+await Parallel.ForEachAsync(source, parallelOptions, async (f, g) =>{
+    await Task.Delay(1000);
+    newList.Add(f);
 });
 
 newList.ToList()
+
+#!csharp
+
+// parallelize an IAsyncEnumerable with Task.WhenAll
+IAsyncEnumerable<int> source = Enumerable.Range(0, 10).ToAsyncEnumerable();
+var tasks = await Enumerable.Range(0, 1000).ToAsyncEnumerable().Select(async f => await Task.Delay(1000)).ToListAsync();
+await Task.WhenAll(tasks);
+
+#!csharp
+
+//parallelize an IEnumerable of Tasks with WhenAll
+var tasks = Enumerable.Range(0, 100).Select(async f => await Task.Delay(1000));
+await Task.WhenAll(tasks);
 
 #!csharp
 
