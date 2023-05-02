@@ -19,26 +19,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using static System.Console;
-public record Person(int Age, string Name);
-
-public static List<Person> people = new List<Person>
-{
-    new Person(25, "Alice"),
-    new Person(30, "Bob"),
-    new Person(42, "Charlie"),
-    new Person(19, "Diana"),
-    new Person(50, "Eve"),
-    new Person(28, "Frank"),
-    new Person(36, "Grace"),
-    new Person(21, "Harry"),
-    new Person(44, "Ivy"),
-    new Person(33, "Jack")
-};
 
 #!csharp
 
-// return an IAsyncEnumerable
-static async IAsyncEnumerable<int> GetIntsAsync()
+// Using yield return with an async iterator method:
+static async IAsyncEnumerable<int> FromIterator()
 {
     foreach(var i in Enumerable.Range(1, 8))
     {
@@ -47,11 +32,25 @@ static async IAsyncEnumerable<int> GetIntsAsync()
     }
 }
 
-// Consume IAsyncEnumerable
-await foreach(var t in GetIntsAsync())
+// Converting a collection of Task<T> to an IAsyncEnumerable<T>:
+static async Task<int> DoAsync(int i)
 {
-    WriteLine(t);
+    await Task.Delay(100);
+    return i;
 }
+
+static async IAsyncEnumerable<int> FromTasks()
+{
+    var tasks = Enumerable.Range(1, 9).Select(DoAsync);
+    return Task.WhenAll(tasks).ToAsyncEnumerable();
+}
+
+
+// Consume IAsyncEnumerable
+// await foreach(var t in FromIterator())
+// {
+//     WriteLine(t);
+// }
 
 #!csharp
 
@@ -89,3 +88,10 @@ public static void AsyncStream(this ObservableCollection<int> target, IAsyncEnum
 {
     
 }
+
+#!csharp
+
+// get project Directory
+string workingDirectory = Environment.CurrentDirectory;
+string projectDirectory = Directory.GetParent(workingDirectory).Parent.Parent.FullName;
+projectDirectory
